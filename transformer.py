@@ -136,7 +136,7 @@ def positional_encoding(seq_len: int, d_model: int) -> jnp.ndarray:
     i = jnp.arange(0, d_model, 2)
 
     # Calculate division term
-    div_term = jnp.power(10000.0 i/ d_model)
+    div_term = jnp.power(10000.0, i/ d_model)
 
     # Broadcast for matrix computation
     pos = pos[:, None]
@@ -155,3 +155,49 @@ def positional_encoding(seq_len: int, d_model: int) -> jnp.ndarray:
     pe = pe.at[:, 1::2].set(jnp.cos(angle))
 
     return pe
+class EncoderBlock(hk.Module):
+    def __init__(
+        self,
+        num_heads: int,
+        d_model: int,
+        d_ff: int,
+        dropout_rate: float = 0.1,
+        name: str | None = None,
+    ):
+        super().__init__(name=name)
+
+        self.mha = MultiHeadAttention(
+            num_heads=num_heads,
+            d_model=d_model,
+            name="mha",
+        )
+
+        self.ffn = FeedForward(
+            d_model=d_model,
+            d_ff=d_ff,
+            name="ffn",
+        )
+
+        self.ln1 = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True)
+        self.ln2 = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True)
+
+        self.dropout_rate = dropout_rate
+
+    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
+        """
+        x: (batch, seq_len, d_model)
+        """
+
+        # Self attention
+        attn_out = self.mha(x)
+
+        # Residual connection + normalisation
+        x = self.ln1(x + attn_out)
+
+        # Feed forward Neural Network
+        ffn_out = self.ffn(x)
+
+        # Residual connection and normalisation
+        x = self.ln2(x + ffn_out) 
+
+        return x
