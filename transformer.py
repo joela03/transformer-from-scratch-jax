@@ -89,3 +89,9 @@ class MultiHeadAttention(hk.module):
         output = hk.Linear(self.d_model, name='output')(attn_output)
 
         return output
+
+class FeedForward(hk.Module):
+    def __init__(self, d_model, d_ff, name=None):
+        super().__init__(name=name)
+        self.d_model = d_model
+        self.d_ff = d_ff
