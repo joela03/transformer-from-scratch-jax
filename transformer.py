@@ -95,3 +95,24 @@ class FeedForward(hk.Module):
         super().__init__(name=name)
         self.d_model = d_model
         self.d_ff = d_ff
+        self.dropout_rate = dropout_rate
+    
+    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
+        """
+        Args:
+        x: Input (batch, seq_len, d_model)
+
+        Returns:
+            Output (batch, seq_len, d_model)
+        """
+
+        # First linear layer
+        x1 = hk.Linear(self.d_ff, name='dense1')(x)
+
+        # Apply Relu activation
+        x2 = jax.nn.relu(x1)
+
+        # Second linear layer
+        output = hk.Linear(self.d_model, name='dense2')(x2)
+
+        return output
