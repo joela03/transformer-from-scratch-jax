@@ -116,3 +116,42 @@ class FeedForward(hk.Module):
         output = hk.Linear(self.d_model, name='dense2')(x2)
 
         return output
+
+
+def positional_encoding(seq_len: int, d_model: int) -> jnp.ndarray:
+    """
+    Generate positional encodings.
+    
+    Args:
+        seq_len: Sequence length
+        d_model: Model dimension
+    
+    Returns:
+        Positional encodings (seq_len, d_model)
+    """
+    # Create positional indices
+    pos = jnp.arange(seq_len)
+
+    # Create dimensional indices for even positional
+    i = jnp.arange(0, d_model, 2)
+
+    # Calculate division term
+    div_term = jnp.power(10000.0 i/ d_model)
+
+    # Broadcast for matrix computation
+    pos = pos[:, None]
+    div_term = div_term[None, :]
+
+    # Compute angles
+    angle = pos / div_term  
+
+    # Initialise positional encoding matrix
+    pe = jnp.zeros((seq_len, d_model))
+
+    # Apply sine to even indices
+    pe = pe.at[:, 0::2].set(jnp.sin(angle))
+
+    # Apply cos to odd indices
+    pe = pe.at[:, 1::2].set(jnp.cos(angle))
+
+    return pe
