@@ -66,21 +66,21 @@ class MultiHeadAttention(hk.module):
         seq_len = x.shape[1]
 
         # Initialise weight matrices
-        W_Q = hk.Linear(self.d_model)(x)
-        W_K = hk.Linear(self.d_model)(x)
-        W_V = hk.Linear(self.d_model)(x)
+        Q = hk.Linear(self.d_model)(x)
+        K = hk.Linear(self.d_model)(x)
+        V = hk.Linear(self.d_model)(x)
 
         # Split into multiple heads
-        W_Q = W_Q.reshape(batch_size, seq_len, self.num_heads, self.d_k )
-        W_K = W_K.reshape(batch_size, seq_len, self.num_heads, self.d_k )
-        W_V = W_V.reshape(batch_size, seq_len, self.num_heads, self.d_k )
+        Q = Q.reshape(batch_size, seq_len, self.num_heads, self.d_k )
+        K = K.reshape(batch_size, seq_len, self.num_heads, self.d_k )
+        V = V.reshape(batch_size, seq_len, self.num_heads, self.d_k )
 
-        W_Q = W_Q.transpose(0, 2, 1, 3)
-        W_K = W_K.transpose(0, 2, 1, 3)
-        W_V = W_V.transpose(0, 2, 1, 3)
+        Q = Q.transpose(0, 2, 1, 3)
+        K = K.transpose(0, 2, 1, 3)
+        V = V.transpose(0, 2, 1, 3)
 
         # Apply attention
-        attn_output = scaled_dot_product_attention(W_Q, W_K, W_V)
+        attn_output = scaled_dot_product_attention(Q, K, V)
         
         # Concatenate heads
         attn_output = attn_output.reshape(batch_size, seq_len, self.d_model)
